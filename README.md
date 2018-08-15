@@ -16,3 +16,8 @@ Hooray it works
 
 It'll be exposed on port 80 on hostname misp.misp unless you
 changed the namespace or service name
+
+### Credit
+
+I more or less stole the dockerfile from [here](https://github.com/misp/misp-docker)
+so thanks Xavier Mertens!
