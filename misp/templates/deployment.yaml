@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "misp.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "misp.name" . }}
+    chart: {{ template "misp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "misp.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "misp.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        {{- if .Values.redis.enabled }}
+        - name: redis
+          image: "{{ .Values.redis.repository }}:{{ .Values.redis.tag }}"
+          ports:
+            - containerPort: 6379
+              targetPort: 6379
+        {{- end}}
+
+        - name: web
+          image: "{{ .Values.web.repository }}:{{ .Values.web.tag }}"
+          imagePullPolicy: {{ .Values.web.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+          - name: MISP_BASEURL
+            value: {{ .Values.web.MISP_BASEURL }}
+#          - name: MISP_ADMIN_EMAIL
+#            value: {{ .Values.web.MISP_ADMIN_EMAIL }}
+#          - name: MISP_ADMIN_PASSPHRASE
+#            value: {{ .Values.web.MISP_ADMIN_PASSPHRASE }}
+          - name: MYSQL_HOST
+            value: {{ .Values.web.MYSQL_HOST }}
+          - name: MYSQL_MISP_PASSWORD
+            value: {{ .Values.web.MYSQL_MISP_PASSWORD }}
+          - name: REDIS_CONNECTION_STRING
+            value: {{ .Values.web.REDIS_CONNECTION_STRING }}
+          - name: PASSWORD_SALT
+            value: {{ .Values.web.PASSWORD_SALT }}
+          - name: ORGNAME
+            value: {{ .Values.web.ORGNAME }}
+          - name: TIMEZONE
+            value: {{ .Values.web.TIMEZONE }}
+          - name: SERVERNAME
+            value: {{ .Values.web.SERVERNAME }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "misp.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "misp.name" . }}
+    chart: {{ template "misp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "misp.name" . }}
+    release: {{ .Release.Name }}
