@@ -27,14 +27,6 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-        {{- if .Values.redis.enabled }}
-        - name: redis
-          image: "{{ .Values.redis.repository }}:{{ .Values.redis.tag }}"
-          ports:
-            - containerPort: 6379
-              targetPort: 6379
-        {{- end}}
-
         - name: web
           image: "{{ .Values.web.repository }}:{{ .Values.web.tag }}"
           imagePullPolicy: {{ .Values.web.pullPolicy }}
@@ -64,6 +56,37 @@ spec:
           - name: SERVERNAME
             value: {{ .Values.web.SERVERNAME }}
 ---
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "misp.fullname" . }}-redis
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: redis
+    chart: {{ template "misp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: redis
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: redis
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image }}:{{ .Values.redis.tag }}"
+          ports:
+            - containerPort: 6379
+              targetPort: 6379
+{{- end}}
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -88,4 +111,25 @@ spec:
       name: http
   selector:
     app: {{ template "misp.name" . }}
+    release: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "misp.name" . }}-redis
+    chart: {{ template "misp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: NodePort
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+      name: redis
+  selector:
+    app: redis
     release: {{ .Release.Name }}

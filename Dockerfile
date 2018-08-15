@@ -1,22 +1,4 @@
 #
-# Dockerfile to build a MISP (https://github.com/MISP/MISP) container
-#
-# Original docker file by eg5846 (https://github.com/eg5846)
-#
-# 2016/03/03 - First release
-# 2017/06/02 - Updated
-# 2018/04/04 - Added objects templates
-# 
-
-# We are based on Ubuntu:latest
-FROM ubuntu:xenial
-MAINTAINER Xavier Mertens <xavier@rootshell.be>
-
-# Install core components
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get dist-upgrade -y && apt-get autoremove -y && apt-get clean
-RUN apt-get install -y software-properties-common
-RUN apt-get install -y postfix
 RUN apt-get install -y mysql-client curl gcc git gnupg-agent make python openssl redis-server sudo vim zip locales
 
 RUN locale-gen en_US.UTF-8
