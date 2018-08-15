@@ -2,33 +2,35 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# WARNING: >1 replica currently breaks sessions
+# Leave as 1
 replicaCount: 1
+
+# The namespace to install into
 namespace: misp
 
 web:
   repository: floatingghost/misp-k8s
   tag: latest
-  pullPolicy: IfNotPresent
-  MISP_BASEURL: http://misp.local
+  pullPolicy: Always
+  MISP_BASEURL: https://misp.local
+  MISP_ADMIN_EMAIL: admin@this_isn't_used
+  MISP_ADMIN_PASSPHRASE: hehe
+  MYSQL_HOST: my_external_database
+  MYSQL_MISP_PASSWORD: aaaaaaa
+  # Recommended: don't change unless you have another server in k8s already
+  REDIS_CONNECTION_STRING: tcp://redis:6379/1
+  PASSWORD_SALT: PLeaseSetMe
+  ORGNAME: ORGNAME
+  TIMEZONE: Europe/London
   SERVERNAME: misp.local
-  MISP_ADMIN_EMAIL: admin@misp.local
-  MISP_ADMIN_PASSPHRASE: goodpassworD!1
-  MYSQL_HOST: mysql://my.sql
-  MYSQL_MISP_PASSWORD: misp
-  # Leave as redis unless you disable redis below and want a shared server
-  REDIS_CONNECTION_STRING: redis://redis
-  # Share across pods for password stuff y'know
-  PASSWORD_SALT: haha_YES
-  ORGNAME: MyOrganization
-  TIMEZONE: UTC
-  
 
 service:
   type: NodePort
   port: 80
 
 redis:
-  enabled: false
+  enabled: true
   image: redis
   tag: latest
   pullPolicy: IfNotPresent
