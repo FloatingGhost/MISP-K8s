@@ -53,6 +53,8 @@ spec:
             value: {{ .Values.web.SERVERNAME }}
           - name: PLUGIN_CONFIG
             value: {{ .Values.web.PLUGIN_CONFIG | quote }}
+          - name: ATTACHMENTS_DIR
+            value: {{ .Values.web.ATTACHMENTS_DIR | quote }}
 
 ---
 {{- if .Values.redis.enabled }}
