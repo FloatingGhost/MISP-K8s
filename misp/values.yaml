@@ -2,37 +2,47 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# WARNING: >1 replica currently breaks sessions
-# Leave as 1
 replicaCount: 1
-
-# The namespace to install into
 namespace: misp
 
 web:
   repository: floatingghost/misp-k8s
   tag: latest
   pullPolicy: Always
-  MISP_BASEURL: https://misp.local
-  MISP_ADMIN_EMAIL: admin@this_isn't_used
-  MISP_ADMIN_PASSPHRASE: hehe
-  MYSQL_HOST: my_external_database
-  MYSQL_MISP_PASSWORD: aaaaaaa
-  # Recommended: don't change unless you have another server in k8s already
-  REDIS_CONNECTION_STRING: tcp://redis:6379/1
-  PASSWORD_SALT: PLeaseSetMe
-  ORGNAME: ORGNAME
-  TIMEZONE: Europe/London
-  SERVERNAME: misp.local
-  # Set to s3:// if you want to use that
-  ATTACHMENTS_DIR: /var/www/MISP/app/files
-  # To be inserted into config.php
-  # Make sure it's valid PHP! (and yaml :P)
-  PLUGIN_CONFIG: >
-    'Plugin' => array(
-        'S3_enable' => true,
-        'S3_bucket_name' => 'my-bucket',
-        'S3_region' => 'eu-west-1'),
+
+config:
+  baseurl: https://misp.local
+  server_name: misp.local
+  admin_email: admin@misp.local
+  admin_passphrase: aaaa
+  timezone: Europe/London
+
+  mysql:
+    host: my.sql
+    password: abcd
+
+  # For sessions. Leave as-is unless you know what you're doing
+  redis_connection_string: tcp://redis:6379/1
+
+  # Internal MISP config
+  # Will set config keys, i.e MISP.live
+  appconfig: |
+      MISP:
+        live: true
+        redis_host: redis
+        redis_port: 6379
+        redis_database: 13
+        org: ORGNAME
+        baseurl: "https://misp.local"
+        attachments_dir: "s3://"
+
+      Security:
+        salt: ChangeMe
+
+      Plugin:
+        S3_enable: true
+        S3_bucket_name: 'my-s3-bucket'
+        S3_region: eu-west-1
 
 service:
   type: NodePort

@@ -4,6 +4,15 @@ kind: Namespace
 metadata:
   name: {{ .Values.namespace }}
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "misp.fullname" . }}-config
+  namespace: {{ .Values.namespace }} 
+data:
+  config.yaml: |
+{{ .Values.config.appconfig | indent 4}}
+---
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
@@ -36,26 +45,24 @@ spec:
               protocol: TCP
           env:
           - name: MISP_BASEURL
-            value: {{ .Values.web.MISP_BASEURL }}
+            value: {{ .Values.config.baseurl }}
           - name: MYSQL_HOST
-            value: {{ .Values.web.MYSQL_HOST }}
+            value: {{ .Values.config.mysql.host }}
           - name: MYSQL_MISP_PASSWORD
-            value: {{ .Values.web.MYSQL_MISP_PASSWORD }}
-          - name: REDIS_CONNECTION_STRING
-            value: {{ .Values.web.REDIS_CONNECTION_STRING }}
-          - name: PASSWORD_SALT
-            value: {{ .Values.web.PASSWORD_SALT }}
-          - name: ORGNAME
-            value: {{ .Values.web.ORGNAME }}
+            value: {{ .Values.config.mysql.password }}
           - name: TIMEZONE
             value: {{ .Values.web.TIMEZONE }}
           - name: SERVERNAME
-            value: {{ .Values.web.SERVERNAME }}
-          - name: PLUGIN_CONFIG
-            value: {{ .Values.web.PLUGIN_CONFIG | quote }}
-          - name: ATTACHMENTS_DIR
-            value: {{ .Values.web.ATTACHMENTS_DIR | quote }}
-
+            value: {{ .Values.config.server_name }}
+          - name: REDIS_CONNECTION_STRING
+            value: {{ .Values.config.redis_connection_string }}
+          volumeMounts:
+          - name: config
+            mountPath: /config
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "misp.fullname" . }}-config
 ---
 {{- if .Values.redis.enabled }}
 apiVersion: apps/v1beta2

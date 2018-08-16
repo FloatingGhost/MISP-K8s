@@ -172,8 +172,12 @@ RUN echo 'autorestart = false' >> /etc/supervisor/conf.d/supervisord.conf
 # Modify syslog configuration
 RUN sed -i -E 's/^(\s*)system\(\);/\1unix-stream("\/dev\/log");/' /etc/syslog-ng/syslog-ng.conf
 
+# Add yaml to python for the memes (and the config)
+RUN pip3 install pyaml
+
 # Add run script
 ADD run.sh /run.sh
+ADD extract_config.py /extract_config.py
 RUN chmod 0755 /run.sh
 
 # Trigger to perform first boot operations

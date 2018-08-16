@@ -121,13 +121,9 @@ __WELCOME__
 fi
 
 sed -i "s|misp.local|$SERVERNAME|" /etc/apache2/sites-available/misp.conf
-sed -i "s|'salt'\s*=> '.*'|'salt' => '$PASSWORD_SALT'|" /var/www/MISP/app/Config/config.php
-sed -i "s|'org'\s*=> 'ORGNAME',|'org' => '$ORGNAME',\n'attachments_dir' => '$ATTACHMENTS_DIR',\n|" /var/www/MISP/app/Config/config.php
 sed -i "s|\$REDIS_CONNECTION_STRING|$REDIS_CONNECTION_STRING|" /etc/php/7.2/apache2/php.ini
-echo "s|\$config = array\s*(|\$config = array\(\n$PLUGIN_CONFIG|"
-export PLUGIN_CONFIG=$(echo $PLUGIN_CONFIG | tr '\n' ' ')
-sed -i "s|\$config = array\s*(|\$config = array\(\n$PLUGIN_CONFIG|" /var/www/MISP/app/Config/config.php
 
+python3 /extract_config.py
 
 # Start supervisord
 echo "Starting supervisord"
