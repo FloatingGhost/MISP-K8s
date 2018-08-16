@@ -24,6 +24,15 @@ web:
   ORGNAME: ORGNAME
   TIMEZONE: Europe/London
   SERVERNAME: misp.local
+  # Set to s3:// if you want to use that
+  ATTACHMENTS_DIR: /var/www/MISP/app/files
+  # To be inserted into config.php
+  # Make sure it's valid PHP! (and yaml :P)
+  PLUGIN_CONFIG: >
+    'Plugin' => array(
+        'S3_enable' => true,
+        'S3_bucket_name' => 'my-bucket',
+        'S3_region' => 'eu-west-1'),
 
 service:
   type: NodePort

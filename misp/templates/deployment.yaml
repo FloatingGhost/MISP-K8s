@@ -37,10 +37,6 @@ spec:
           env:
           - name: MISP_BASEURL
             value: {{ .Values.web.MISP_BASEURL }}
-#          - name: MISP_ADMIN_EMAIL
-#            value: {{ .Values.web.MISP_ADMIN_EMAIL }}
-#          - name: MISP_ADMIN_PASSPHRASE
-#            value: {{ .Values.web.MISP_ADMIN_PASSPHRASE }}
           - name: MYSQL_HOST
             value: {{ .Values.web.MYSQL_HOST }}
           - name: MYSQL_MISP_PASSWORD
@@ -55,6 +51,9 @@ spec:
             value: {{ .Values.web.TIMEZONE }}
           - name: SERVERNAME
             value: {{ .Values.web.SERVERNAME }}
+          - name: PLUGIN_CONFIG
+            value: {{ .Values.web.PLUGIN_CONFIG | quote }}
+
 ---
 {{- if .Values.redis.enabled }}
 apiVersion: apps/v1beta2
