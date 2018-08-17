@@ -1,5 +1,4 @@
 replicaCount: 1
-namespace: misp
 
 web:
   repository: floatingghost/misp-k8s
