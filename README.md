@@ -9,7 +9,7 @@ First make sure [helm](https://helm.sh/) is installed
 ```bash
 # Copy values to edit
 cp misp/values.yaml ./localvalues.yaml
-helm install ./misp -f localvalues.yaml --name misp
+helm install ./misp -f localvalues.yaml --name misp --namespace misp
 ```
 
 Hooray it works
