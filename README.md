@@ -2,6 +2,8 @@
 
 A helm chart to install MISP to k8s
 
+*NOTE*: This is mainly tuned for AWS, you may have to tweak some stuff for your env
+
 ## Installation
 
 First make sure [helm](https://helm.sh/) is installed
