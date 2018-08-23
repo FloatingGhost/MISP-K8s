@@ -29,14 +29,32 @@ spec:
               containerPort: 80
               protocol: TCP
           env:
+          {{- if .Values.config.pgp.from_s3 }}
+          - name: PGP_S3
+            value: {{ .Values.config.pgp.s3_url }}
+          {{- else }}
+          - name: MISP_ADMIN_EMAIL
+            value: {{ .Values.config.admin_email }}
+          - name: MISP_ADMIN_PASSPHRASE
+            value: {{ .Values.config.admin_passphrase }}
+          {{- end }}
+
           - name: MISP_BASEURL
             value: {{ .Values.config.baseurl }}
           - name: MYSQL_HOST
             value: {{ .Values.config.mysql.host }}
           - name: MYSQL_MISP_PASSWORD
             value: {{ .Values.config.mysql.password }}
+          - name: POSTFIX_EXTRA_CONFIG
+            value: {{ .Values.config.postfix.extra_config | quote }}
           - name: TIMEZONE
-            value: {{ .Values.web.TIMEZONE }}
+            value: {{ .Values.config.timezone }}
+          - name: POSTFIX_RELAY_HOST
+            value: {{ .Values.config.postfix.relay_host | quote}}
+          - name: SMTP_USERNAME
+            value: {{ .Values.config.postfix.smtp.username }}
+          - name: SMTP_PASSWORD
+            value: {{ .Values.config.postfix.smtp.password }}
           - name: SERVERNAME
             value: {{ .Values.config.server_name }}
           - name: REDIS_CONNECTION_STRING

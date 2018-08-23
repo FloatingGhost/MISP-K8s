@@ -1,4 +1,9 @@
+# Default values for misp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
 replicaCount: 1
+namespace: misp
 
 web:
   repository: floatingghost/misp-k8s
@@ -7,23 +12,42 @@ web:
 
   service:
     type: NodePort
-    
+
 config:
   baseurl: https://misp.local
   server_name: misp.local
-  admin_email: admin@misp.local
-  admin_passphrase: aaaa
   timezone: Europe/London
+  pgp:
+    from_s3: true
+    s3_url: "s3://my-bucket/my-pgp.key"
+    admin_email: misp@misp.local
+    admin_passphrase: PGP Password
+
+  cakeresque:
+    redis_host: redis
+    redis_port: 6379
+    namespace: resque
 
   mysql:
-    host: my.sql
-    password: abcd
+    host: mysql.host
+    password: mysql.pass
 
-  # For sessions. Leave as-is unless you know what you're doing
   redis_connection_string: tcp://redis:6379/1
 
-  # Internal MISP config
-  # Will set config keys, i.e MISP.live
+  postfix:
+    relay_host: "[email-smtp.eu-west-2.amazonaws.com]:587"
+    extra_config: >
+        "smtp_sasl_auth_enable=yes"
+        "smtp_sasl_security_options=noanonymous"
+        "smtp_sasl_password_maps=hash:/etc/postfix/sasl_passwd"
+        "smtp_use_tls=yes"
+        "smtp_tls_security_level=encrypt"
+        "smtp_tls_note_starttls_offer=yes"
+
+    smtp:
+        username: "SMTP USERNAME"
+        password: "SMTP PASSWORD"
+
   appconfig: |
       MISP:
         live: true
@@ -33,6 +57,23 @@ config:
         org: ORGNAME
         baseurl: "https://misp.local"
         attachments_dir: "s3://"
+        email: misp@misp.local
+
+      GnuPG:
+        email: misp@misp.local
+        homedir: /var/www/MISP/.gnupg
+        password: PGP Password
+
+      Security:
+        salt: ChangeMePlease
+
+      Plugin:
+        S3_enable: true
+        S3_bucket_name: 'my-bucket'
+        S3_region: eu-west-2
+        ElasticSearch_logging_enable: true
+        ElasticSearch_connection_string: https://my-es:443
+        ElasticSearch_log_index: misp_logging
 
       CakeResque:
         Redis.host: redis
@@ -41,21 +82,13 @@ config:
         Redis.namespace: resque
         Redis.password: ""
 
-      Security:
-        salt: ChangeMe
-
-      Plugin:
-        S3_enable: true
-        S3_bucket_name: 'my-s3-bucket'
-        S3_region: eu-west-1
-
 modules:
   enabled: true
   replicas: 1
   image: floatingghost/misp-modules
   tag: latest
   pullPolicy: IfNotPresent
-  
+
 redis:
   enabled: true
   image: redis

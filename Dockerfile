@@ -153,6 +153,7 @@ RUN pip3 install --upgrade --ignore-installed requests
 RUN pip3 install lief
 RUN pip3 install git+https://github.com/kbandla/pydeep.git
 RUN pip3 install python-magic
+RUN pip3 install awscli
 
 # Supervisord Setup
 RUN echo '[supervisord]' >> /etc/supervisor/conf.d/supervisord.conf

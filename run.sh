@@ -21,6 +21,19 @@ if [ -r /.firstboot.tmp ]; then
                 postconf -e "relayhost = $POSTFIX_RELAY"
         fi
 
+        sed -i "s|-o smtp_fallback_relay=||" /etc/postfix/master.cf
+
+        if [ ! -z "$POSTFIX_EXTRA_CONFIG" ]; then
+               echo "postconf -e $POSTFIX_EXTRA_CONFIG";
+               postconf -e $POSTFIX_EXTRA_CONFIG;
+        fi
+
+        if [ ! -z "$SMTP_USERNAME" ]; then
+                echo "$POSTFIX_RELAY_HOST $SMTP_USERNAME:$SMTP_PASSWORD" >> /etc/postfix/sasl_password;
+                postmap hash:/etc/postfix/sasl_password;
+                postconf -e 'smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt';
+        fi
+
         # Fix timezone (adapt to your local zone)
         if [ -z "$TIMEZONE" ]; then
                 echo "TIMEZONE is not set, please configure the local time zone manually later..."
@@ -89,6 +102,12 @@ if [ -r /.firstboot.tmp ]; then
 
         # Generate the admin user PGP key
         echo "Creating admin GnuPG key"
+        if [ ! -z "$PGP_S3" ]; then
+            echo "Retriving PGP key from $PGP_S3";
+            aws s3 cp $PGP_S3 private.key;
+            sudo -u www-data gpg --homedir /var/www/MISP/.gnupg --import private.key;
+        fi
+
         if [ -z "$MISP_ADMIN_EMAIL" -o -z "$MISP_ADMIN_PASSPHRASE" ]; then
                 echo "No admin details provided, don't forget to generate the PGP key manually!"
         else
