@@ -5,6 +5,9 @@ web:
   tag: latest
   pullPolicy: Always
 
+  service:
+    type: NodePort
+    
 config:
   baseurl: https://misp.local
   server_name: misp.local
@@ -31,6 +34,13 @@ config:
         baseurl: "https://misp.local"
         attachments_dir: "s3://"
 
+      CakeResque:
+        Redis.host: redis
+        Redis.port: 6379
+        Redis.database: 0
+        Redis.namespace: resque
+        Redis.password: ""
+
       Security:
         salt: ChangeMe
 
@@ -39,10 +49,13 @@ config:
         S3_bucket_name: 'my-s3-bucket'
         S3_region: eu-west-1
 
-service:
-  type: NodePort
-  port: 80
-
+modules:
+  enabled: true
+  replicas: 1
+  image: floatingghost/misp-modules
+  tag: latest
+  pullPolicy: IfNotPresent
+  
 redis:
   enabled: true
   image: redis

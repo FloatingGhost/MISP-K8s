@@ -123,6 +123,7 @@ fi
 sed -i "s|misp.local|$SERVERNAME|" /etc/apache2/sites-available/misp.conf
 sed -i "s|\$REDIS_CONNECTION_STRING|$REDIS_CONNECTION_STRING|" /etc/php/7.2/apache2/php.ini
 
+
 python3 /extract_config.py
 
 # Start supervisord

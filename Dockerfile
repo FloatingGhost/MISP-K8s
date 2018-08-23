@@ -10,7 +10,7 @@
 
 # We are based on Ubuntu:latest
 FROM ubuntu:xenial
-MAINTAINER Xavier Mertens <xavier@rootshell.be>
+MAINTAINER Hannah Ward <hannah.ward2@baesystems.com>
 
 # Install core components
 ENV DEBIAN_FRONTEND noninteractive
@@ -39,8 +39,7 @@ RUN sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 50M/" /etc/php/7.2/
 RUN sed -i "s/post_max_size = 8M/post_max_size = 50M/" /etc/php/7.2/apache2/php.ini
 RUN sed -i "s/session.save_handler = files/session.save_handler = redis\nsession.save_path = \$REDIS_CONNECTION_STRING/" /etc/php/7.2/apache2/php.ini
  
-RUN apt-get install -y python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools libfuzzy-dev
-RUN apt-get install -y cron logrotate supervisor syslog-ng-core
+RUN apt-get install -y python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools libfuzzy-dev python3-setuptools python3-dev python3-pip libjpeg-dev cron logrotate supervisor syslog-ng-core
 RUN apt-get clean
 
 WORKDIR /var/www
@@ -48,29 +47,39 @@ RUN chown www-data:www-data /var/www
 USER www-data
 RUN git clone https://github.com/FloatingGhost/MISP.git
 WORKDIR /var/www/MISP
-RUN git checkout malware-to-s3
 #RUN git checkout tags/$(git describe --tags `git rev-list --tags --max-count=1`)
 RUN git config core.filemode false
 
 WORKDIR /var/www/MISP/app/files/scripts
+RUN git clone https://github.com/MAECProject/python-maec.git
+RUN git clone https://github.com/CybOXProject/mixbox.git
 RUN git clone https://github.com/CybOXProject/python-cybox.git
 RUN git clone https://github.com/STIXProject/python-stix.git
 
 WORKDIR /var/www/MISP/app/files/scripts/python-cybox
-RUN git checkout v2.1.0.12
+RUN git checkout v2.1.0.17
 USER root
-RUN python setup.py install
+RUN python3 setup.py install
 
 USER www-data
 WORKDIR /var/www/MISP/app/files/scripts/python-stix
-RUN git checkout v1.1.1.4
+RUN git checkout v1.2.0.6
 USER root
-RUN python setup.py install
+RUN python3 setup.py install
 
 USER www-data
 WORKDIR /var/www/MISP
 RUN git submodule init
 RUN git submodule update
+
+USER root
+WORKDIR /var/www/MISP/PyMISP
+RUN pip3 install jsonschema==2.6.0
+RUN python3 setup.py install
+WORKDIR /var/www/MISP/app/files/scripts/python-maec
+RUN python3 setup.py install
+
+USER www-data
 WORKDIR /var/www/MISP/app
 RUN php composer.phar config vendor-dir Vendor
 RUN php composer.phar require aws/aws-sdk-php
@@ -134,14 +143,16 @@ RUN chown -R www-data:www-data misp-objects misp-galaxy warninglists taxonomies
 
 # Install MISP Modules
 WORKDIR /opt
-RUN apt-get install -y python3 python3-pip libjpeg-dev
-RUN git clone https://github.com/MISP/misp-modules.git
-WORKDIR /opt/misp-modules
-RUN pip3 install --upgrade --ignore-installed urllib3
+
+USER root
+RUN pip3 install --upgrade --ignore-installed setuptools
+RUN pip3 install --upgrade --ignore-installed urllib3 
 RUN pip3 install --upgrade --ignore-installed requests
-RUN pip3 install -I -r REQUIREMENTS
-RUN pip3 install -I .
-RUN echo "sudo -u www-data misp-modules -s -l 127.0.0.1 &" >>/etc/rc.local
+
+# Install extra deps
+RUN pip3 install lief
+RUN pip3 install git+https://github.com/kbandla/pydeep.git
+RUN pip3 install python-magic
 
 # Supervisord Setup
 RUN echo '[supervisord]' >> /etc/supervisor/conf.d/supervisord.conf
@@ -164,11 +175,6 @@ RUN echo 'user = www-data' >> /etc/supervisor/conf.d/supervisord.conf
 RUN echo 'startsecs = 0' >> /etc/supervisor/conf.d/supervisord.conf
 RUN echo 'autorestart = false' >> /etc/supervisor/conf.d/supervisord.conf
 RUN echo '' >> /etc/supervisor/conf.d/supervisord.conf
-RUN echo '[program:misp-modules]' >> /etc/supervisor/conf.d/supervisord.conf
-RUN echo 'command=/bin/bash -c "misp-modules -s -l 127.0.0.1"' >> /etc/supervisor/conf.d/supervisord.conf
-RUN echo 'user = www-data' >> /etc/supervisor/conf.d/supervisord.conf
-RUN echo 'startsecs = 0' >> /etc/supervisor/conf.d/supervisord.conf
-RUN echo 'autorestart = false' >> /etc/supervisor/conf.d/supervisord.conf
 
 # Modify syslog configuration
 RUN sed -i -E 's/^(\s*)system\(\);/\1unix-stream("\/dev\/log");/' /etc/syslog-ng/syslog-ng.conf

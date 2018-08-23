@@ -1,0 +1,52 @@
+{{- if .Values.modules.enabled }}
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "misp.fullname" . }}-modules
+  labels:
+    app: misp-modules
+    chart: {{ template "misp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.modules.replicas }}
+  selector:
+    matchLabels:
+      app: misp-modules
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: misp-modules
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: web
+          image: {{ .Values.modules.image }}:{{ .Values.modules.tag }}
+          imagePullPolicy: {{ .Values.modules.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 6666
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: misp-modules
+  labels:
+    app: misp-modules
+    chart: {{ template "misp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: NodePort
+  ports:
+    - port: 6666
+      targetPort: 6666
+      protocol: TCP
+      name: http
+  selector:
+    app: misp-modules
+    release: {{ .Release.Name }}
+{{- end}}

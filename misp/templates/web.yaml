@@ -1,12 +1,4 @@
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ template "misp.fullname" . }}-config
-data:
-  config.yaml: |
-{{ .Values.config.appconfig | indent 4}}
----
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
@@ -57,36 +49,6 @@ spec:
         configMap:
           name: {{ template "misp.fullname" . }}-config
 ---
-{{- if .Values.redis.enabled }}
-apiVersion: apps/v1beta2
-kind: Deployment
-metadata:
-  name: {{ template "misp.fullname" . }}-redis
-  labels:
-    app: redis
-    chart: {{ template "misp.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: redis
-      release: {{ .Release.Name }}
-  template:
-    metadata:
-      labels:
-        app: redis
-        release: {{ .Release.Name }}
-    spec:
-      containers:
-        - name: redis
-          image: "{{ .Values.redis.image }}:{{ .Values.redis.tag }}"
-          ports:
-            - containerPort: 6379
-              targetPort: 6379
-{{- end}}
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -102,32 +64,12 @@ spec:
 #    clientIP:
 #      timeoutSeconds: 10800
 
-  type: {{ .Values.service.type }}
+  type: {{ .Values.web.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 80
       targetPort: http
       protocol: TCP
       name: http
   selector:
     app: {{ template "misp.name" . }}
-    release: {{ .Release.Name }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis
-  labels:
-    app: {{ template "misp.name" . }}-redis
-    chart: {{ template "misp.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-spec:
-  type: NodePort
-  ports:
-    - port: 6379
-      targetPort: 6379
-      protocol: TCP
-      name: redis
-  selector:
-    app: redis
     release: {{ .Release.Name }}
