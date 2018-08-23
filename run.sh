@@ -142,7 +142,7 @@ fi
 sed -i "s|misp.local|$SERVERNAME|" /etc/apache2/sites-available/misp.conf
 sed -i "s|\$REDIS_CONNECTION_STRING|$REDIS_CONNECTION_STRING|" /etc/php/7.2/apache2/php.ini
 
-sudo -u www-data gpg --homedir /var/www/MISP/.gnupg -a --export $MISP_ADMIN_EMAIL > /var/www/MISP/app/gpg.asc
+sudo -u www-data gpg --homedir /var/www/MISP/.gnupg -a --export $MISP_ADMIN_EMAIL > /var/www/MISP/app/webroot/gpg.asc
 python3 /extract_config.py
 
 # Start supervisord
