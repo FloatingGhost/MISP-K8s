@@ -22,16 +22,19 @@ RUN add-apt-repository -y ppa:ondrej/php && apt-get update
 
 RUN apt-get install -y postfix mysql-client curl gcc git gnupg-agent make \
             python openssl redis-server sudo vim zip \
-            apache2 apache2-doc apache2-utils libapache2-mod-php php7.2 \
-            php7.2-cli php-crypt-gpg php7.2-dev php7.2-json php7.2-mysql \
+            apache2 apache2-doc apache2-utils libapache2-mod-php7.2 php7.2 \
+            php7.2-cli php7.2-dev php7.2-json php7.2-mysql \
             php7.2-opcache php7.2-readline php7.2-redis php7.2-xml php7.2-curl \
-            php-pear pkg-config libbson-1.0 libmongoc-1.0-0 php-xml php-dev \
+            php-pear pkg-config libbson-1.0 libmongoc-1.0-0 php7.2-xml php7.2-dev \
             python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools \
             libfuzzy-dev python3-setuptools python3-dev python3-pip libjpeg-dev cron \
-            logrotate supervisor syslog-ng-core
+            logrotate supervisor syslog-ng-core php7.2-gd php7.2-mbstring
 
 RUN a2dismod status
 RUN a2dissite 000-default
+RUN apt-get install -y libgpgme11-dev
+RUN pecl install gnupg && echo extension=gnupg.so > /etc/php/7.2/apache2/conf.d/gnupg.ini
+
 
 # Fix php.ini with recommended settings 
 RUN sed -i "s/max_execution_time = 30/max_execution_time = 300/" /etc/php/7.2/apache2/php.ini && \
