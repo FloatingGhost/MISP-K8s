@@ -8,7 +8,6 @@
 # 2018/04/04 - Added objects templates
 # 
 
-# We are based on Ubuntu:latest
 FROM ubuntu:xenial
 MAINTAINER Hannah Ward <hannah.ward2@baesystems.com>
 
@@ -26,7 +25,7 @@ RUN apt-get install -y postfix mysql-client curl gcc git gnupg-agent make \
             apache2 apache2-doc apache2-utils libapache2-mod-php php7.2 \
             php7.2-cli php-crypt-gpg php7.2-dev php7.2-json php7.2-mysql \
             php7.2-opcache php7.2-readline php7.2-redis php7.2-xml php7.2-curl \
-            php-pear pkg-config libbson-1.0 libmongoc-1.0-0 php-xml php-dev
+            php-pear pkg-config libbson-1.0 libmongoc-1.0-0 php-xml php-dev \
             python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools \
             libfuzzy-dev python3-setuptools python3-dev python3-pip libjpeg-dev cron \
             logrotate supervisor syslog-ng-core
@@ -81,10 +80,10 @@ RUN python3 setup.py install
 
 USER www-data
 WORKDIR /var/www/MISP/app
-RUN php composer.phar config vendor-dir Vendor && \
-    php composer.phar require aws/aws-sdk-php && \
-    php composer.phar require elasticsearch/elasticsearch && \
-    php composer.phar install --ignore-platform-reqs
+RUN php7.2 composer.phar config vendor-dir Vendor && \
+    php7.2 composer.phar require aws/aws-sdk-php && \
+    php7.2 composer.phar require elasticsearch/elasticsearch && \
+    php7.2 composer.phar install --ignore-platform-reqs
 
 USER root
 RUN phpenmod redis
@@ -141,7 +140,8 @@ RUN rm -rf misp-objects && git clone https://github.com/MISP/misp-objects.git &&
 WORKDIR /opt
 
 USER root
-RUN pip3 install --upgrade --ignore-installed setuptools urllib3 requests lief https://github.com/kbandla/pydeep.git python-magic awscli pyaml
+RUN pip3 install --upgrade --ignore-installed setuptools && \
+    pip3 install --upgrade urllib3 requests lief git+https://github.com/kbandla/pydeep.git python-magic awscli pyaml
 
 # Supervisord Setup
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
